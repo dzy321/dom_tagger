@@ -1,0 +1,22 @@
+{
+  "name": "dom_tagger",
+  "version": "0.1.0",
+  "description": "dom tagger",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dzy321/dom_tagger.git"
+  },
+  "keywords": [
+    "dom",
+    "tagger"
+  ],
+  "author": "wy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dzy321/dom_tagger/issues"
+  },
+  "homepage": "https://github.com/dzy321/dom_tagger#readme"
+}
