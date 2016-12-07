@@ -1,0 +1,13 @@
+.form{
+  margin: 10px;
+  .form-item{
+    line-height: 30px;
+    label{
+      width: 100px;
+      display: inline-block;
+    }
+    input{
+      width: 200px;
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "name": "dom_tagger",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "dom tagger",
+  "icons": {
+    "16": "images/icon-16.png",
+    "128": "images/icon-128.png"
+  },
+  "background": {
+    "scripts": [
+      "scripts/background.js"
+    ],
+    "persistent": false
+  },
+  "permissions": [
+    "http://*/*",
+    "https://*/*",
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "scripts/content.js"
+      ],
+      "css": [
+				"styles/main.css"
+			],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "browser_action": {
+    "default_icon": {
+      "19": "images/icon-19.png",
+      "38": "images/icon-38.png"
+    },
+    "default_title": "tagger"
+  },
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    "images/icon-48.png",
+    "styles/main.css"
+  ]
+}
