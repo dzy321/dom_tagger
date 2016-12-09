@@ -9798,14 +9798,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
   window.comm = {
     getConfig: function getConfig() {
-      var config = localStorage.getItem(storeKey);
-      return config ? JSON.parse(config) : {};
-    },
-    trim: function trim(s) {
-      return s.replace(/(^\s*)|(\s*$)/g, '');
+      return new Promise(function (resolve) {
+        var _chrome$storage$local;
+
+        chrome.storage.local.get((_chrome$storage$local = {}, _chrome$storage$local[storeKey] = {}, _chrome$storage$local), function (result) {
+          resolve(result[storeKey] || {});
+        });
+      });
     },
     setConfig: function setConfig(config) {
-      localStorage.setItem(storeKey, JSON.stringify(config));
+      return new Promise(function (resolve) {
+        var _chrome$storage$local2;
+
+        chrome.storage.local.set((_chrome$storage$local2 = {}, _chrome$storage$local2[storeKey] = config, _chrome$storage$local2), function () {
+          resolve();
+        });
+      });
     }
   };
 })();'use strict';
@@ -9815,7 +9823,96 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 (function () {
   var tagger = void 0;
   var templet = function templet() {
-    return '<div class="__dom_tagger_container">\n      <div>\n        <label>path:</label>\n        <span class="__dom_tagger_path"></span>\n        <input type="hidden" />\n      </div>\n      <div>\n        <label>tag:</label><input type="text" class="__dom_tagger_tag" />\n      </div>\n      <div>\n        <button>\u4FDD\u5B58</button>\n      </div>\n    </div>';
+    return '<div class="__dom_tagger_container">\n      <div>\n        <label>\u8DEF\u5F84:</label>\n        <textarea readOnly rows="3" class="__dom_tagger_path"></textarea>\n      </div>\n      <div>\n        <label>\u6807\u7B7E:</label><input type="text" class="__dom_tagger_tag" />\n      </div>\n      <div>\n        <button class="__dom_tagger_ok">\u4FDD\u5B58</button>\n        <button class="__dom_tagger_cancel">\u53D6\u6D88</button>\n      </div>\n    </div>';
+  };
+
+  var PostData = function PostData(requestUrl, params) {
+    return new Promise(function (resolve) {
+      var d = document;
+      var iframe = d.createElement('iframe');
+      var uniqueString = 'terminus-dom-tag-' + new Date().getTime();
+      d.body.appendChild(iframe);
+      iframe.style.display = 'none';
+      iframe.contentWindow.name = uniqueString;
+
+      var form = d.createElement('form');
+      form.target = uniqueString;
+      form.style.display = 'none';
+      form.action = requestUrl;
+      form.method = 'POST';
+
+      $.each(params, function (k, v) {
+        var input = d.createElement('input');
+        input.type = 'hidden';
+        input.name = k;
+        input.value = v;
+        form.appendChild(input);
+      });
+
+      d.body.appendChild(form);
+      form.submit();
+      $(iframe).on('load', function () {
+        d.body.removeChild(form);
+        d.body.removeChild(iframe);
+        resolve();
+      });
+    });
+  };
+
+  var getXPath = function getXPath(node, path) {
+    var count = 0;
+    path = path || [];
+
+    if (node.parentNode) {
+      path = getXPath(node.parentNode, path);
+    }
+
+    if (node.previousSibling) {
+      // 获取祖先元素
+      count = 1;
+      var sibling = node.previousSibling;
+      do {
+        if (sibling.nodeType === 1 && sibling.nodeName === node.nodeName) {
+          count++;
+        }
+        sibling = sibling.previousSibling;
+      } while (sibling);
+      if (count === 1) {
+        count = null;
+      }
+    } else if (node.nextSibling) {
+      // 获取子元素
+      var _sibling = node.nextSibling;
+      do {
+        if (_sibling.nodeType === 1 && _sibling.nodeName === node.nodeName) {
+          count = 1;
+          _sibling = null;
+        } else {
+          count = null;
+          _sibling = _sibling.previousSibling;
+        }
+      } while (_sibling);
+    }
+
+    if (node.nodeType === 1) {
+      var attr = '';
+
+      if (node.id) {
+        // 判断是否有id属性
+        attr += '[@id=\'' + node.id + '\']';
+      }
+
+      if (node.getAttribute('class') !== null) {
+        // 判断class属性
+        attr += '[@class=\'' + node.getAttribute('class') + '\']';
+      }
+
+      attr += count > 0 ? '[' + count + ']' : ''; // 判断当前元素index位置
+
+      path.push(node.nodeName.toLowerCase() + attr);
+    }
+
+    return path;
   };
 
   var Tagger = function () {
@@ -9824,16 +9921,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
     }
 
     Tagger.prototype.open = function open() {
-      // if (!this.container) {
-      //   this.createContainer()
-      // }
-      // this.container.show()
       this.isOpen = true;
+      delete this.preventEvent;
       this.bindEvent();
-    };
-
-    Tagger.prototype.createContainer = function createContainer() {
-      this.container = $(templet()).appendTo($(document.body));
     };
 
     Tagger.prototype.bindEvent = function bindEvent() {
@@ -9842,11 +9932,14 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       var timer = void 0,
           inOut = void 0;
       this.onMouseOut = function (e) {
+        if (_this.preventEvent) return;
         if (!e.relatedTarget) {
           inOut = true;
+          _this.target = null;
         }
       };
       this.onMouseMove = function (e) {
+        if (_this.preventEvent) return;
         inOut = false;
         if (_this.cover && _this.cover.css('dispaly') !== 'none') {
           _this.cover.hide();
@@ -9855,7 +9948,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
           clearTimeout(timer);
         }
         timer = setTimeout(function () {
+          if (!_this.isOpen) return;
           if (!inOut) {
+            _this.target = e.target;
             _this.showCover($(e.target));
           }
         }, 200);
@@ -9864,9 +9959,54 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
       $(window).mouseout(this.onMouseOut);
     };
 
+    Tagger.prototype.hideContainer = function hideContainer() {
+      this.container.hide('fast', 'linear');
+      this.container.find('.__dom_tagger_path').val('');
+      this.container.find('.__dom_tagger_tag').val('');
+      delete this.preventEvent;
+    };
+
+    Tagger.prototype.showContainer = function showContainer() {
+      var _this2 = this;
+
+      this.preventEvent = true;
+      if (!this.container) {
+        this.container = $(templet()).appendTo($(document.body));
+        this.container.find('button.__dom_tagger_ok').click(function () {
+          _this2.container.find('button.__dom_tagger_ok').prop('disabled', true);
+          var path = _this2.container.find('.__dom_tagger_path').val();
+          var tag = _this2.container.find('.__dom_tagger_tag').val();
+          comm.getConfig().then(function (_ref) {
+            var appId = _ref.appId,
+                serverUrl = _ref.serverUrl;
+
+            return PostData(serverUrl, {
+              path: path,
+              tag: tag,
+              appId: appId
+            });
+          }).then(function () {
+            _this2.hideContainer();
+          });
+        });
+      }
+      this.container.find('button.__dom_tagger_cancel').click(function () {
+        _this2.hideContainer();
+      });
+      this.container.show().find('button.__dom_tagger_ok').prop('disabled', false);
+      var path = getXPath(this.target).join('/');
+      this.container.find('.__dom_tagger_path').val(path);
+    };
+
     Tagger.prototype.showCover = function showCover($target) {
+      var _this3 = this;
+
       if (!this.cover) {
         this.cover = $('<div class="__dom_tagger_hover"></div>').appendTo($(document.body));
+        this.cover.click(function () {
+          if (!_this3.isOpen) return;
+          _this3.showContainer();
+        });
       }
 
       var _$target$offset = $target.offset(),

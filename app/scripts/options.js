@@ -1,18 +1,25 @@
 (() => {
-  const config = comm.getConfig()
-
-  // init
   const ids = Array.prototype.slice.call(document.getElementsByTagName('input')).map(ipt => ipt.id)
 
-  ids.forEach((id) => {
-    document.getElementById(id).value = config[id] || ''
+  comm.getConfig().then((config) => {
+    // init
+    ids.forEach((id) => {
+      $(`#${id}`).val(config[id] || '')
+    })
   })
 
   // handle event
-  document.getElementById('btnOk').addEventListener('click', () => {
+  $('#btnOk').click(() => {
+    const config = {}
     ids.forEach((id) => {
-      config[id] = comm.trim(document.getElementById(id).value)
+      config[id] = $.trim($(`#${id}`).val())
     })
-    comm.setConfig(config)
-  }, false)
+    $('#btnOk').prop('disabled', true)
+    comm.setConfig(config).then(() => {
+      $('#btnOk').prop('disabled', false)
+      $('.form-info').fadeToggle('slow', 'linear', () => {
+        $('.form-info').fadeToggle('slow', 'linear')
+      })
+    })
+  })
 })()

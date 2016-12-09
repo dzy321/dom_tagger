@@ -9,7 +9,7 @@ module.exports = (shepherd) => {
 
   const srcPath = {
     resource: '{app/images/**/*,app/*}',
-    options_js: 'app/scripts/{common,options}.js',
+    options_js: '{app/scripts/{common,options}.js,node_modules/jquery/dist/jquery.js}',
     background_js: 'app/scripts/background.js',
     content_js: '{app/scripts/{common,content}.js,node_modules/jquery/dist/jquery.js}',
     css: 'app/styles/**/*'

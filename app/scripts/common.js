@@ -3,14 +3,20 @@
 
   window.comm = {
     getConfig() {
-      const config = localStorage.getItem(storeKey)
-      return config ? JSON.parse(config) : {}
-    },
-    trim(s) {
-      return s.replace(/(^\s*)|(\s*$)/g, '')
+      return new Promise((resolve) => {
+        chrome.storage.local.get({ [storeKey]: {} }, (result) => {
+          resolve(result[storeKey] || {})
+        })
+      })
     },
     setConfig(config) {
-      localStorage.setItem(storeKey, JSON.stringify(config))
+      return new Promise((resolve) => {
+        chrome.storage.local.set({
+          [storeKey]: config
+        }, () => {
+          resolve()
+        })
+      })
     }
   }
 })()

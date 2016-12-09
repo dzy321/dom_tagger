@@ -16,7 +16,8 @@
   "permissions": [
     "http://*/*",
     "https://*/*",
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "content_scripts": [
     {
@@ -30,7 +31,7 @@
       "css": [
 				"styles/main.css"
 			],
-      "run_at": "document_end",
+      "run_at": "document_start",
       "all_frames": false
     }
   ],
