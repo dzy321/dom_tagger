@@ -19,6 +19,7 @@ $enable-focus-color: rgb(213, 242, 253);
       display: block;
     }
     >button{
+      line-height: 1.5 !important;
       &.__dom_tagger_cancel{
         margin-left: 5px;
       }
@@ -37,6 +38,8 @@ $enable-focus-color: rgb(213, 242, 253);
     }
     >input, textarea{
       box-sizing: border-box !important;
+      min-height: auto !important;
+      line-height: 1.5 !important;
       -webkit-box-sizing: border-box !important;
       -moz-box-sizing: border-box !important;
       height: auto !important;

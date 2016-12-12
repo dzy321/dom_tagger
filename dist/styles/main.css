@@ -16,6 +16,7 @@
     .__dom_tagger_container > div > label {
       display: block; }
     .__dom_tagger_container > div > button {
+      line-height: 1.5 !important;
       margin-top: 10px;
       background: #4B99AD;
       padding: 8px 15px 8px 15px;
@@ -31,6 +32,8 @@
         -webkit-box-shadow: none; }
     .__dom_tagger_container > div > input, .__dom_tagger_container > div textarea {
       box-sizing: border-box !important;
+      min-height: auto !important;
+      line-height: 1.5 !important;
       -webkit-box-sizing: border-box !important;
       -moz-box-sizing: border-box !important;
       height: auto !important;
